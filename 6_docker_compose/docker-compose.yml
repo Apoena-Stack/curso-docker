@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mysql-container:
+    image: mysql:latest
+    container_name: mysql-apoena
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+    volumes:
+      - mysql-data-apoena:/var/lib/mysql
+    networks:
+      - network-apoena
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  client-app:
+    build:
+      context: ./app
+    container_name: client-app-apoena
+    environment:
+      DB_HOST: mysql-apoena
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: mydatabase
+    depends_on:
+      mysql-container:
+        condition: service_healthy
+    networks:
+      - network-apoena
+
+
+volumes:
+  mysql-data-apoena:
+
+networks:
+  network-apoena:
+    driver: bridge
+    name: network-apoena
+
